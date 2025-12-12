@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Генератор мемов</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  h1 {
+    margin-bottom: 30px;
+    font-size: 3em;
+    text-align: center;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+  }
+  #memeContainer {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    transition: transform 0.3s ease;
+  }
+  #memeContainer:hover { transform: scale(1.03); }
+  canvas { width: 100%; height: 100%; display: block; }
+  .inputs { display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; }
+  input, select {
+    margin: 8px 0;
+    padding: 10px 15px;
+    width: 250px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1em;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+  input:focus, select:focus { box-shadow: 0 0 10px #39ff14; }
+  .buttons { display: flex; gap: 15px; margin-top: 15px; }
+  button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 1em;
+    cursor: pointer;
+    background: linear-gradient(45deg, #39ff14, #00ffea);
+    color: #000;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+  }
+  button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+</style>
+</head>
+<body>
+
+<h1>Генератор мемов</h1>
+
+<div id="memeContainer">
+  <canvas id="memeCanvas" width="400" height="400"></canvas>
+</div>
+
+<div class="inputs">
+  <input type="text" id="topInput" placeholder="Верхний текст">
+  <input type="text" id="bottomInput" placeholder="Нижний текст">
+  <label for="fontSelect">Выберите шрифт:</label>
+  <select id="fontSelect">
+    <option value="Impact">Impact</option>
+    <option value="Arial">Arial</option>
+    <option value="Comic Sans MS">Comic Sans</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Roboto" selected>Roboto</option>
+  </select>
+</div>
+
+<div class="buttons">
+  <button id="generateBtn">Сгенерировать мем</button>
+  <button id="downloadBtn">Скачать мем</button>
+</div>
+
+<script>
+const memes = [
+  "https://i.imgflip.com/1bij.jpg",
+  "https://i.imgflip.com/26am.jpg",
+  "https://i.imgflip.com/1otk96.jpg",
+  "https://i.imgflip.com/1ur9b0.jpg",
+  "https://i.imgflip.com/aet3d2.jpg",
+  "https://i.imgflip.com/aet3j8.jpg",
+  "https://i.imgflip.com/aet3o6.jpg",
+  "https://i.imgflip.com/aet3q8.jpg",
+  "https://i.imgflip.com/aet3ro.jpg",
+  "https://i.imgflip.com/aet49q.jpg",
+  "https://i.imgflip.com/aet48l.jpg",
+  "https://i.imgflip.com/aet474.jpg",
+  "https://i.imgflip.com/aet4by.jpg",
+  "https://i.imgflip.com/aet4g4.jpg",
+  "https://i.imgflip.com/aet4es.jpg",
+  "https://i.imgflip.com/aet4dw.jpg",
+  "https://i.imgflip.com/aet4dc.jpg",
+  "https://i.imgflip.com/2wifvo.jpg"
+];
+
+const canvas = document.getElementById("memeCanvas");
+const ctx = canvas.getContext("2d");
+const topInput = document.getElementById("topInput");
+const bottomInput = document.getElementById("bottomInput");
+const fontSelect = document.getElementById("fontSelect");
+const generateBtn = document.getElementById("generateBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+
+// функция для автоуменьшения текста
+function drawText(ctx, text, x, y, maxWidth) {
+  let fontSize = 32;
+  ctx.font = `bold ${fontSize}px ${fontSelect.value}`;
+  ctx.textAlign = "center";
+  while (ctx.measureText(text).width > maxWidth && fontSize > 10) {
+    fontSize -= 1;
+    ctx.font = `bold ${fontSize}px ${fontSelect.value}`;
+  }
+  ctx.fillStyle = "white";
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 4;
+  ctx.fillText(text, x, y);
+  ctx.strokeText(text, x, y);
+}
+
+function generateMeme() {
+  const rand = Math.floor(Math.random() * memes.length);
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = memes[rand];
+
+  img.onload = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // верхний текст
+    drawText(ctx, topInput.value.toUpperCase(), canvas.width/2, 40, canvas.width - 20);
+    // нижний текст
+    drawText(ctx, bottomInput.value.toUpperCase(), canvas.width/2, canvas.height - 20, canvas.width - 20);
+  };
+}
+
+function downloadMeme() {
+  const link = document.createElement("a");
+  link.download = "meme.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+generateBtn.addEventListener("click", generateMeme);
+downloadBtn.addEventListener("click", downloadMeme);
+
+// генерация первого мем при загрузке
+generateMeme();
+</script>
+
+</body>
+</html>
